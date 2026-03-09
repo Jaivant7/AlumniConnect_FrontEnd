@@ -7,10 +7,13 @@ const Admin = () => {
     const { user } = useContext(AuthContext);
     const [unverifiedUsers, setUnverifiedUsers] = useState([]);
     const [stats, setStats] = useState({ total: 0, verified: 0, pending: 0 });
+    const [complaints, setComplaints] = useState([]);
+    const [activeTab, setActiveTab] = useState('verifications'); // 'verifications' or 'complaints'
 
     useEffect(() => {
         fetchUnverifiedUsers();
         fetchStats();
+        fetchComplaints();
     }, []);
 
     const fetchUnverifiedUsers = async () => {
@@ -25,11 +28,31 @@ const Admin = () => {
         setStats(res.data);
     };
 
+    const fetchComplaints = async () => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await axios.get('http://localhost:5000/api/complaints', config);
+            setComplaints(res.data);
+        } catch (error) {
+            console.error('Error fetching complaints:', error);
+        }
+    };
+
     const handleVerify = async (userId) => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         await axios.patch(`http://localhost:5000/api/admin/verify/${userId}`, {}, config);
         fetchUnverifiedUsers();
         fetchStats();
+    };
+
+    const handleResolve = async (complaintId) => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            await axios.put(`http://localhost:5000/api/complaints/${complaintId}/resolve`, {}, config);
+            fetchComplaints();
+        } catch (error) {
+            console.error('Error resolving complaint:', error);
+        }
     };
 
     const getRoleBadge = (role) => {
@@ -79,13 +102,31 @@ const Admin = () => {
                     </div>
                 </div>
 
-                {/* Pending Verifications */}
+                {/* Tabs */}
+                <div className="flex space-x-4 mb-6 border-b border-gray-200">
+                    <button
+                        onClick={() => setActiveTab('verifications')}
+                        className={`py-3 px-6 font-semibold text-lg border-b-2 transition-colors ${activeTab === 'verifications' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Pending Verifications
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('complaints')}
+                        className={`py-3 px-6 font-semibold text-lg border-b-2 transition-colors ${activeTab === 'complaints' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                    >
+                        User Support ({complaints.filter(c => c.status === 'pending').length} Pending)
+                    </button>
+                </div>
+
+                {/* Content Area */}
                 <div className="card animate-slide-up stagger-4">
-                    <div className="p-6 border-b border-gray-200">
-                        <h3 className="text-xl font-bold text-gray-900 heading-font">
-                            Pending Verifications
-                        </h3>
-                    </div>
+                    {activeTab === 'verifications' && (
+                        <>
+                            <div className="p-6 border-b border-gray-200">
+                                <h3 className="text-xl font-bold text-gray-900 heading-font">
+                                    Pending Verifications
+                                </h3>
+                            </div>
 
                     {unverifiedUsers.length > 0 ? (
                         <div className="overflow-x-auto">
@@ -147,6 +188,61 @@ const Admin = () => {
                             <h3 className="text-2xl font-bold text-gray-900 mb-2 heading-font">All Caught Up!</h3>
                             <p className="text-gray-600">No pending verifications at the moment</p>
                         </div>
+                    )}
+                        </>
+                    )}
+
+                    {activeTab === 'complaints' && (
+                        <>
+                            <div className="p-6 border-b border-gray-200">
+                                <h3 className="text-xl font-bold text-gray-900 heading-font">
+                                    User Support & Complaints
+                                </h3>
+                            </div>
+                            
+                            {complaints.length > 0 ? (
+                                <div className="p-6 space-y-4">
+                                    {complaints.map((complaint) => (
+                                        <div key={complaint._id} className="card p-6 border-l-4" style={{ borderLeftColor: complaint.status === 'resolved' ? '#10B981' : '#F59E0B' }}>
+                                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <h3 className="text-lg font-bold text-gray-900">{complaint.subject}</h3>
+                                                        <span className="text-sm font-medium text-gray-500">
+                                                            by {complaint.user.name} ({complaint.user.role})
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-gray-600 mb-4 whitespace-pre-wrap">{complaint.description}</p>
+                                                    <p className="text-xs text-gray-400 font-medium">
+                                                        {complaint.user.email} • {new Date(complaint.createdAt).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                                <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                                                    {complaint.status === 'resolved' ? (
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-green-50 text-green-700">
+                                                            <CheckCircle size={16} /> Resolved
+                                                        </span>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleResolve(complaint._id)}
+                                                            className="bg-white border border-gray-200 text-gray-700 hover:text-green-600 hover:border-green-600 px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
+                                                        >
+                                                            <CheckCircle size={16} /> Mark Resolved
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="p-12 text-center">
+                                    <div className="text-6xl mb-4">🎉</div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-2 heading-font">Zero Inbox</h3>
+                                    <p className="text-gray-600">No complaints or support tickets at the moment</p>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

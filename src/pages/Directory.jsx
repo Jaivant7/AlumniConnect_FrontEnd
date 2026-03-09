@@ -30,7 +30,7 @@ const Directory = () => {
     const sendChatRequest = async (recipientId) => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         try {
-            await axios.post('http://localhost:5000/api/chat/request', { recipientId }, config);
+            await axios.post('http://localhost:5000/api/chat/request', { userId: recipientId }, config);
             alert('Chat request sent!');
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to send request');

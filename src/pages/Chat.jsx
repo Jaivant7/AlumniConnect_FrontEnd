@@ -32,6 +32,7 @@ const Chat = () => {
     useEffect(() => {
         if (activeChat) {
             fetchMessages(activeChat._id);
+            socket.emit('join_chat', activeChat._id);
         }
     }, [activeChat]);
 
@@ -75,7 +76,7 @@ const Chat = () => {
 
     const handleAcceptReject = async (chatId, status) => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.patch(`http://localhost:5000/api/chat/${chatId}`, { status }, config);
+        await axios.put(`http://localhost:5000/api/chat/${chatId}/respond`, { status }, config);
         fetchChats();
     };
 

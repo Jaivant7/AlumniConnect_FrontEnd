@@ -10,6 +10,7 @@ import Jobs from './pages/Jobs';
 import Directory from './pages/Directory';
 import Chat from './pages/Chat';
 import Admin from './pages/Admin';
+import Help from './pages/Help';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -52,6 +53,7 @@ function App() {
             <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
             <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
             <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+            <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
           </Routes>
         </div>
