@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { Plus, Building, MapPin, Briefcase, User, ChevronRight } from 'lucide-react';
+import { Plus, MapPin, Briefcase, Calendar, Clock, ArrowRight, User, DollarSign, Share2, Bookmark, Building2, X } from 'lucide-react';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 
@@ -7,15 +7,52 @@ const Jobs = () => {
     const { user } = useContext(AuthContext);
     const [jobs, setJobs] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const [skillInput, setSkillInput] = useState('');
     const [formData, setFormData] = useState({
         title: '',
         company: '',
         location: '',
+        workMode: 'On-site',
+        description: '',
         role: '',
-        skills: '',
+        type: 'Full-time',
+        salaryRange: '',
+        skills: [],
         deadline: '',
         applyLink: ''
     });
+
+    const addSkill = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const skill = skillInput.trim();
+            if (skill && !formData.skills.includes(skill)) {
+                setFormData({ ...formData, skills: [...formData.skills, skill] });
+            }
+            setSkillInput('');
+        }
+    };
+
+    const removeSkill = (skillToRemove) => {
+        setFormData({ ...formData, skills: formData.skills.filter(s => s !== skillToRemove) });
+    };
+
+    const timeAgo = (date) => {
+        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+        const intervals = [
+            { label: 'year', seconds: 31536000 },
+            { label: 'month', seconds: 2592000 },
+            { label: 'week', seconds: 604800 },
+            { label: 'day', seconds: 86400 },
+            { label: 'hour', seconds: 3600 },
+            { label: 'minute', seconds: 60 },
+        ];
+        for (const interval of intervals) {
+            const count = Math.floor(seconds / interval.seconds);
+            if (count >= 1) return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
+        }
+        return 'Just now';
+    };
 
     useEffect(() => {
         fetchJobs();
@@ -30,8 +67,7 @@ const Jobs = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const payload = { ...formData, skills: formData.skills.split(',').map(s => s.trim()) };
-        await axios.post('http://localhost:5000/api/jobs', payload, config);
+        await axios.post('http://localhost:5000/api/jobs', formData, config);
         setShowModal(false);
         fetchJobs();
     };
@@ -99,75 +135,126 @@ const Jobs = () => {
                 </div>
 
                 {/* Job Listings */}
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                     {jobs.map((job, index) => (
-                        <div key={job._id} className={`card card-hover p-6 animate-slide-up stagger-${Math.min(index + 1, 3)}`}>
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <Building className="text-blue-600" size={28} />
+                        <div key={job._id} className={`group bg-white rounded-2xl border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all duration-300 overflow-hidden animate-slide-up stagger-${Math.min(index + 1, 3)}`}>
+                            <div className="p-5">
+                                {/* Header: Logo + Title + Actions */}
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">
+                                            {job.company.charAt(0).toUpperCase()}
                                         </div>
+                                        <div className="min-w-0">
+                                            <h3 className="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1 leading-tight">
+                                                {job.title}
+                                            </h3>
+                                            <p className="text-sm text-gray-500 font-medium mt-0.5">{job.company}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                        <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                            <Bookmark className="w-4 h-4" />
+                                        </button>
+                                        <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                            <Share2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
 
-                                        <div className="flex-1">
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div>
-                                                    <h3 className="text-xl font-bold text-gray-900 mb-1">{job.title}</h3>
-                                                    <p className="text-gray-600 font-medium">{job.company}</p>
-                                                </div>
-                                                <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                                                    {new Date(job.deadline).toLocaleDateString()}
-                                                </span>
+                                {/* Location + Work Mode */}
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="flex items-center gap-1 text-sm text-gray-500">
+                                        <MapPin className="w-3.5 h-3.5" />
+                                        {job.location}
+                                    </span>
+                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${job.workMode === 'Remote' ? 'bg-green-100 text-green-700' :
+                                        job.workMode === 'Hybrid' ? 'bg-emerald-100 text-emerald-700' :
+                                            'bg-orange-100 text-orange-700'
+                                        }`}>
+                                        {job.workMode || 'On-site'}
+                                    </span>
+                                </div>
+
+                                {/* Description */}
+                                <p className="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed">
+                                    {job.description || job.role}
+                                </p>
+
+                                {/* Salary Range & Job Type */}
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                    {job.salaryRange && (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                                                <DollarSign className="w-4 h-4 text-green-600" />
                                             </div>
-
-                                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
-                                                <span className="flex items-center gap-1">
-                                                    <MapPin size={14} />
-                                                    {job.location}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Briefcase size={14} />
-                                                    Full-time
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <User size={14} />
-                                                    Posted by Alumni
-                                                </span>
+                                            <div>
+                                                <p className="text-[11px] text-gray-400">Salary Range</p>
+                                                <p className="text-sm font-semibold text-gray-900">{job.salaryRange}</p>
                                             </div>
-
-                                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">{job.role}</p>
-
-                                            {/* Skills */}
-                                            <div className="flex flex-wrap gap-2 mb-4">
-                                                {job.skills.slice(0, 4).map((skill, idx) => (
-                                                    <span key={idx} className="badge badge-blue">
-                                                        {skill}
-                                                    </span>
-                                                ))}
-                                                {job.skills.length > 4 && (
-                                                    <span className="badge bg-gray-100 text-gray-600">
-                                                        +{job.skills.length - 4} more
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <div className="flex items-center gap-3">
-                                                <a
-                                                    href={job.applyLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="btn-primary inline-flex items-center gap-2"
-                                                >
-                                                    Apply Now
-                                                    <ChevronRight size={16} />
-                                                </a>
-                                                <button className="btn-secondary">
-                                                    Save
-                                                </button>
-                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                                            <Building2 className="w-4 h-4 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[11px] text-gray-400">Job Type</p>
+                                            <p className="text-sm font-semibold text-gray-900">{job.type || 'Full-time'}</p>
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Skills Tags */}
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {job.skills.slice(0, 4).map((skill, idx) => (
+                                        <span key={idx} className="px-4 py-1.5 bg-gray-50 border border-gray-200 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-100 transition-colors">
+                                            {skill}
+                                        </span>
+                                    ))}
+                                    {job.skills.length > 4 && (
+                                        <span className="px-4 py-1.5 bg-gray-50 border border-gray-200 text-gray-400 rounded-full text-xs font-medium">
+                                            +{job.skills.length - 4} more
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Timeline */}
+                                <div className="flex items-center gap-4 pt-3 border-t border-gray-100 text-xs text-gray-400">
+                                    <span className="flex items-center gap-1">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        {timeAgo(job.createdAt)}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <Calendar className="w-3.5 h-3.5" />
+                                        Due {new Date(job.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Footer: Posted By + Apply */}
+                            <div className="px-5 pb-5">
+                                <div className="flex items-center gap-2.5 p-3 bg-gray-50 rounded-xl mb-3">
+                                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                        {job.user?.name ? job.user.name.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] text-gray-400">Posted by</p>
+                                        <p className="text-sm font-semibold text-gray-900">
+                                            {job.user?.name || 'Alumni'}{job.user?.year ? `, Class of ${job.user.year}` : ''}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <a
+                                    href={job.applyLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 group/btn shadow-sm hover:shadow-md text-sm"
+                                >
+                                    Apply Now
+                                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                </a>
                             </div>
                         </div>
                     ))}
@@ -185,69 +272,163 @@ const Jobs = () => {
                 {/* Post Job Modal */}
                 {showModal && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-                        <div className="card p-8 w-full max-w-2xl animate-scale-in">
+                        <div className="card p-8 w-full max-w-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
                             <h2 className="text-3xl font-bold text-gray-900 mb-6 heading-font">Post a Job</h2>
                             <form onSubmit={handleSubmit} className="space-y-4">
+                                {/* Row 1: Title & Company */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input
-                                        type="text"
-                                        placeholder="Job Title"
-                                        required
-                                        className="input-field"
-                                        value={formData.title}
-                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Company"
-                                        required
-                                        className="input-field"
-                                        value={formData.company}
-                                        onChange={e => setFormData({ ...formData, company: e.target.value })}
-                                    />
+                                    <div>
+                                        <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Job Title *</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Senior Software Engineer"
+                                            required
+                                            className="input-field"
+                                            value={formData.title}
+                                            onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Company *</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. TechCorp Solutions"
+                                            required
+                                            className="input-field"
+                                            value={formData.company}
+                                            onChange={e => setFormData({ ...formData, company: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
-                                <input
-                                    type="text"
-                                    placeholder="Location"
-                                    required
-                                    className="input-field"
-                                    value={formData.location}
-                                    onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                />
-                                <textarea
-                                    placeholder="Role Description"
-                                    required
-                                    rows="3"
-                                    className="input-field"
-                                    value={formData.role}
-                                    onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Skills (comma separated)"
-                                    required
-                                    className="input-field"
-                                    value={formData.skills}
-                                    onChange={e => setFormData({ ...formData, skills: e.target.value })}
-                                />
+
+                                {/* Row 2: Location & Work Mode */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Location *</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. San Francisco, CA"
+                                            required
+                                            className="input-field"
+                                            value={formData.location}
+                                            onChange={e => setFormData({ ...formData, location: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Work Mode</label>
+                                        <select
+                                            className="input-field"
+                                            value={formData.workMode}
+                                            onChange={e => setFormData({ ...formData, workMode: e.target.value })}
+                                        >
+                                            <option value="On-site">On-site</option>
+                                            <option value="Remote">Remote</option>
+                                            <option value="Hybrid">Hybrid</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Row 3: Role & Job Type */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Role *</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Frontend Developer"
+                                            required
+                                            className="input-field"
+                                            value={formData.role}
+                                            onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Job Type</label>
+                                        <select
+                                            className="input-field"
+                                            value={formData.type}
+                                            onChange={e => setFormData({ ...formData, type: e.target.value })}
+                                        >
+                                            <option value="Full-time">Full-time</option>
+                                            <option value="Part-time">Part-time</option>
+                                            <option value="Internship">Internship</option>
+                                            <option value="Contract">Contract</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Description */}
                                 <div>
-                                    <label className="block text-sm text-gray-700 mb-2 font-semibold">Application Deadline</label>
-                                    <input
-                                        type="date"
+                                    <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Description *</label>
+                                    <textarea
+                                        placeholder="Describe the role, responsibilities, and what makes this opportunity exciting..."
                                         required
+                                        rows="3"
                                         className="input-field"
-                                        value={formData.deadline}
-                                        onChange={e => setFormData({ ...formData, deadline: e.target.value })}
+                                        value={formData.description}
+                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
                                     />
                                 </div>
-                                <input
-                                    type="url"
-                                    placeholder="Application Link"
-                                    required
-                                    className="input-field"
-                                    value={formData.applyLink}
-                                    onChange={e => setFormData({ ...formData, applyLink: e.target.value })}
-                                />
+
+                                {/* Row 4: Salary & Skills */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Salary Range</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. $120k - $180k"
+                                            className="input-field"
+                                            value={formData.salaryRange}
+                                            onChange={e => setFormData({ ...formData, salaryRange: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Skills *</label>
+                                        <div className="input-field !py-2 flex flex-wrap gap-2 items-center min-h-[42px]">
+                                            {formData.skills.map((skill, idx) => (
+                                                <span key={idx} className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-medium">
+                                                    {skill}
+                                                    <button type="button" onClick={() => removeSkill(skill)} className="hover:text-red-500 transition-colors">
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                            <input
+                                                type="text"
+                                                placeholder={formData.skills.length === 0 ? 'Type a skill & press Enter' : 'Add more...'}
+                                                className="flex-1 min-w-[120px] outline-none bg-transparent text-sm"
+                                                value={skillInput}
+                                                onChange={e => setSkillInput(e.target.value)}
+                                                onKeyDown={addSkill}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Row 5: Deadline & Apply Link */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Application Deadline *</label>
+                                        <input
+                                            type="date"
+                                            required
+                                            className="input-field"
+                                            value={formData.deadline}
+                                            onChange={e => setFormData({ ...formData, deadline: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-gray-700 mb-1.5 font-semibold">Application Link *</label>
+                                        <input
+                                            type="url"
+                                            placeholder="https://..."
+                                            required
+                                            className="input-field"
+                                            value={formData.applyLink}
+                                            onChange={e => setFormData({ ...formData, applyLink: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
                                 <div className="flex justify-end space-x-3 pt-4">
                                     <button
                                         type="button"

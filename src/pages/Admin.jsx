@@ -45,6 +45,20 @@ const Admin = () => {
         fetchStats();
     };
 
+    const handleReject = async (userId) => {
+        if (window.confirm("Are you sure you want to reject and delete this user?")) {
+            try {
+                const config = { headers: { Authorization: `Bearer ${user.token}` } };
+                await axios.delete(`http://localhost:5000/api/admin/reject/${userId}`, config);
+                fetchUnverifiedUsers();
+                fetchStats();
+            } catch (error) {
+                console.error('Error rejecting user:', error);
+                alert('Failed to reject user');
+            }
+        }
+    };
+
     const handleResolve = async (complaintId) => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
@@ -169,13 +183,22 @@ const Admin = () => {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <button
-                                                    onClick={() => handleVerify(u._id)}
-                                                    className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all flex items-center gap-2"
-                                                >
-                                                    <CheckCircle size={16} />
-                                                    Verify
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleVerify(u._id)}
+                                                        className="bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all flex items-center gap-1.5 text-sm"
+                                                    >
+                                                        <CheckCircle size={16} />
+                                                        Verify
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleReject(u._id)}
+                                                        className="bg-white border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center gap-1.5 text-sm"
+                                                    >
+                                                        <XCircle size={16} />
+                                                        Reject
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

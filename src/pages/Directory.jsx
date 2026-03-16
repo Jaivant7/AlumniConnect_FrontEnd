@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { Search, Building, Calendar, Briefcase, User, MessageSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 
@@ -7,6 +8,7 @@ const Directory = () => {
     const { user } = useContext(AuthContext);
     const [users, setUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchUsers();
@@ -30,8 +32,12 @@ const Directory = () => {
     const sendChatRequest = async (recipientId) => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         try {
-            await axios.post('http://localhost:5000/api/chat/request', { userId: recipientId }, config);
-            alert('Chat request sent!');
+            const response = await axios.post('http://localhost:5000/api/chat/request', { userId: recipientId }, config);
+            if (response.data && response.data.status === 'accepted') {
+                navigate('/chat', { state: { targetUserId: recipientId } });
+            } else {
+                alert('Chat request sent!');
+            }
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to send request');
         }

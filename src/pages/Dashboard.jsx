@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { Briefcase, MessageSquare, Users, ChevronRight, Building, MapPin } from 'lucide-react';
+import { Briefcase, MessageSquare, Users, ChevronRight, Building, MapPin, Bell, AlertCircle, ArrowRight } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 
 const Dashboard = () => {
@@ -9,6 +9,9 @@ const Dashboard = () => {
 
     const [recentJobs, setRecentJobs] = useState([]);
     const [featuredAlumni, setFeaturedAlumni] = useState([]);
+    const [activeChatsCount, setActiveChatsCount] = useState(0);
+    const [alumniCount, setAlumniCount] = useState(0);
+    const [notifications, setNotifications] = useState([]);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -21,9 +24,20 @@ const Dashboard = () => {
 
                 // Fetch Users (Alumni)
                 const usersRes = await axios.get('http://localhost:5000/api/users', config);
-                // Filter alumni and get top 2
-                const alumni = usersRes.data.filter(u => u.role === 'alumni').slice(0, 2);
-                setFeaturedAlumni(alumni);
+                // Filter alumni (excluding current user) and get top 2
+                const alumni = usersRes.data.filter(u => u.role === 'alumni' && u._id !== user._id);
+                setAlumniCount(alumni.length);
+                setFeaturedAlumni(alumni.slice(0, 2));
+
+                // Fetch Chats for Active Conversations Stat
+                const chatsRes = await axios.get('http://localhost:5000/api/chat', config);
+                const activeChats = chatsRes.data.filter(c => c.status === 'accepted');
+                setActiveChatsCount(activeChats.length);
+
+                // Fetch Notifications
+                const notifRes = await axios.get('http://localhost:5000/api/notifications', config);
+                setNotifications(notifRes.data.slice(0, 5)); // Show top 5 recent notifications
+
             } catch (error) {
                 console.error("Error fetching dashboard data", error);
             }
@@ -74,7 +88,7 @@ const Dashboard = () => {
                             <MessageSquare size={28} />
                             <span className="text-purple-100 text-sm font-medium">Active</span>
                         </div>
-                        <div className="text-3xl font-bold mb-1">8</div>
+                        <div className="text-3xl font-bold mb-1">{activeChatsCount}</div>
                         <div className="text-purple-100">Conversations</div>
                     </div>
 
@@ -83,7 +97,7 @@ const Dashboard = () => {
                             <Users size={28} />
                             <span className="text-green-100 text-sm font-medium">Connected</span>
                         </div>
-                        <div className="text-3xl font-bold mb-1">156</div>
+                        <div className="text-3xl font-bold mb-1">{alumniCount}</div>
                         <div className="text-green-100">Alumni Network</div>
                     </div>
                 </div>
@@ -129,9 +143,14 @@ const Dashboard = () => {
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-xs text-gray-500">Posted by {job.user?.name || 'Alumni'}</span>
-                                                <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
-                                                    Apply →
-                                                </button>
+                                                <a 
+                                                    href={job.applyLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1"
+                                                >
+                                                    Apply <ArrowRight size={14} />
+                                                </a>
                                             </div>
                                         </div>
                                     ))
@@ -164,9 +183,9 @@ const Dashboard = () => {
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-gray-600 truncate">{person.company || 'N/A'}</span>
-                                                <button className="text-blue-600 hover:text-blue-700 font-medium">
+                                                <Link to="/directory" className="text-blue-600 hover:text-blue-700 font-medium">
                                                     Connect
-                                                </button>
+                                                </Link>
                                             </div>
                                         </div>
                                     ))
@@ -186,29 +205,25 @@ const Dashboard = () => {
                             </h3>
 
                             <div className="space-y-3">
-                                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-purple-500">
-                                            <MessageSquare size={16} className="text-white" />
+                                {notifications.length > 0 ? (
+                                    notifications.map((notif) => (
+                                        <div key={notif._id} className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                            <div className="flex items-start gap-3">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${notif.type === 'chat' ? 'bg-purple-500' : notif.type === 'complaint' ? 'bg-orange-500' : 'bg-blue-500'}`}>
+                                                    {notif.type === 'chat' && <MessageSquare size={16} className="text-white" />}
+                                                    {notif.type === 'complaint' && <AlertCircle size={16} className="text-white" />}
+                                                    {(!notif.type || notif.type === 'system') && <Bell size={16} className="text-white" />}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-sm text-gray-900 mb-1">{notif.title}</p>
+                                                    <span className="text-xs text-gray-500">{getTimeAgo(notif.createdAt)}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm text-gray-900 mb-1">New chat request from Priya Sharma</p>
-                                            <span className="text-xs text-gray-500">5m ago</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-blue-500">
-                                            <Briefcase size={16} className="text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm text-gray-900 mb-1">New job posted: Senior Developer at Google</p>
-                                            <span className="text-xs text-gray-500">1h ago</span>
-                                        </div>
-                                    </div>
-                                </div>
+                                    ))
+                                ) : (
+                                    <p className="text-gray-500 text-sm text-center">No recent notifications</p>
+                                )}
                             </div>
                         </div>
                     </div>

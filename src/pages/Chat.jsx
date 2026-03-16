@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { Search, Send, Check, X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 import io from 'socket.io-client';
@@ -8,6 +9,7 @@ let socket;
 
 const Chat = () => {
     const { user } = useContext(AuthContext);
+    const location = useLocation();
     const [chats, setChats] = useState([]);
     const [activeChat, setActiveChat] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -35,6 +37,18 @@ const Chat = () => {
             socket.emit('join_chat', activeChat._id);
         }
     }, [activeChat]);
+
+    useEffect(() => {
+        if (location.state?.targetUserId && activeChats.length > 0) {
+            const targetChat = activeChats.find(c => 
+                c.participants.some(p => p._id === location.state.targetUserId)
+            );
+            if (targetChat) {
+                setActiveChat(targetChat);
+                window.history.replaceState({}, document.title);
+            }
+        }
+    }, [location.state, activeChats]);
 
     useEffect(() => {
         socket.on('receive_message', (message) => {
