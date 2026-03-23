@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { Search, Building, Calendar, Briefcase, User, MessageSquare } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 
@@ -83,13 +83,19 @@ const Directory = () => {
                                 {/* User Avatar & Info */}
                                 <div className="flex items-start space-x-4 mb-4">
                                     <div className="relative">
-                                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-2xl shadow-md flex-shrink-0">
-                                            {u.name.charAt(0).toUpperCase()}
-                                        </div>
+                                        {u.profilePicture ? (
+                                            <img src={`http://localhost:5000${u.profilePicture}`} alt={u.name} className="w-16 h-16 rounded-xl object-cover shadow-md flex-shrink-0" />
+                                        ) : (
+                                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-2xl shadow-md flex-shrink-0">
+                                                {u.name.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
                                         {/* Online status could be added here */}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-xl font-bold text-gray-900 truncate mb-1">{u.name}</h3>
+                                        <Link to={`/profile/${u._id}`} className="hover:text-blue-600 transition-colors">
+                                            <h3 className="text-xl font-bold text-gray-900 truncate mb-1">{u.name}</h3>
+                                        </Link>
                                         <span className={`badge ${getRoleBadge(u.role).class}`}>
                                             {getRoleBadge(u.role).text}
                                         </span>

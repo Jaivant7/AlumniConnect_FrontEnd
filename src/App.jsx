@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Jobs from './pages/Jobs';
 import Directory from './pages/Directory';
 import Chat from './pages/Chat';
+import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import Help from './pages/Help';
 
@@ -52,6 +53,7 @@ function App() {
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
             <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
+            <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
             <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />

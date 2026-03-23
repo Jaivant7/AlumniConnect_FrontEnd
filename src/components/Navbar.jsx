@@ -182,12 +182,12 @@ const Navbar = () => {
                         </div>
 
                         {/* User Profile */}
-                        <div className="hidden md:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-gray-50">
+                        <Link to={`/profile/${user._id}`} className="hidden md:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
                                 {user.name.charAt(0).toUpperCase()}
                             </div>
                             <span className="text-gray-900 font-medium text-sm">{user.name}</span>
-                        </div>
+                        </Link>
 
                         {/* Logout */}
                         <button

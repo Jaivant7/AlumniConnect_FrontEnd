@@ -72,6 +72,21 @@ const Jobs = () => {
         fetchJobs();
     };
 
+    const handleApply = async (jobId, applyLink) => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            // Ensure only students send the request, others just open link
+            if (user.role === 'student') {
+                await axios.post(`http://localhost:5000/api/jobs/${jobId}/apply`, {}, config);
+            }
+            window.open(applyLink, '_blank', 'noopener,noreferrer');
+        } catch (error) {
+            console.error('Error applying for job:', error.response?.data?.message || error.message);
+            // Open the link anyway so they can apply externally
+            window.open(applyLink, '_blank', 'noopener,noreferrer');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 body-font">
             <div className="max-w-7xl mx-auto px-6 py-8">
@@ -246,15 +261,13 @@ const Jobs = () => {
                                     </div>
                                 </div>
 
-                                <a
-                                    href={job.applyLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <button
+                                    onClick={() => handleApply(job._id, job.applyLink)}
                                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 group/btn shadow-sm hover:shadow-md text-sm"
                                 >
                                     Apply Now
                                     <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                                </a>
+                                </button>
                             </div>
                         </div>
                     ))}
