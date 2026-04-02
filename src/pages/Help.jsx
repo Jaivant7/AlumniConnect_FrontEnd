@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { LifeBuoy, PlusCircle, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 
@@ -23,7 +23,7 @@ const Help = () => {
                     Authorization: `Bearer ${user.token}`,
                 },
             };
-            const { data } = await axios.get('http://localhost:5000/api/complaints/mine', config);
+            const { data } = await api.get('/api/complaints/mine', config);
             setComplaints(data);
         } catch (error) {
             console.error('Error fetching complaints:', error);
@@ -44,7 +44,7 @@ const Help = () => {
                 },
             };
 
-            await axios.post('http://localhost:5000/api/complaints', formData, config);
+            await api.post('/api/complaints', formData, config);
             
             setSuccess('Complaint submitted successfully. An admin will review it shortly.');
             setFormData({ subject: '', description: '' });

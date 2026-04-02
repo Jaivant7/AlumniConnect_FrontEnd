@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { Users, UserCheck, Clock, CheckCircle, XCircle } from 'lucide-react';
-import axios from 'axios';
+import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
 
 const Admin = () => {
@@ -18,20 +18,20 @@ const Admin = () => {
 
     const fetchUnverifiedUsers = async () => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get('http://localhost:5000/api/admin/unverified', config);
+        const res = await api.get('/api/admin/unverified', config);
         setUnverifiedUsers(res.data);
     };
 
     const fetchStats = async () => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get('http://localhost:5000/api/admin/stats', config);
+        const res = await api.get('/api/admin/stats', config);
         setStats(res.data);
     };
 
     const fetchComplaints = async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            const res = await axios.get('http://localhost:5000/api/complaints', config);
+            const res = await api.get('/api/complaints', config);
             setComplaints(res.data);
         } catch (error) {
             console.error('Error fetching complaints:', error);
@@ -40,7 +40,7 @@ const Admin = () => {
 
     const handleVerify = async (userId) => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.patch(`http://localhost:5000/api/admin/verify/${userId}`, {}, config);
+        await api.patch(`/api/admin/verify/${userId}`, {}, config);
         fetchUnverifiedUsers();
         fetchStats();
     };
@@ -49,7 +49,7 @@ const Admin = () => {
         if (window.confirm("Are you sure you want to reject and delete this user?")) {
             try {
                 const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                await axios.delete(`http://localhost:5000/api/admin/reject/${userId}`, config);
+                await api.delete(`/api/admin/reject/${userId}`, config);
                 fetchUnverifiedUsers();
                 fetchStats();
             } catch (error) {
@@ -62,7 +62,7 @@ const Admin = () => {
     const handleResolve = async (complaintId) => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            await axios.put(`http://localhost:5000/api/complaints/${complaintId}/resolve`, {}, config);
+            await api.put(`/api/complaints/${complaintId}/resolve`, {}, config);
             fetchComplaints();
         } catch (error) {
             console.error('Error resolving complaint:', error);

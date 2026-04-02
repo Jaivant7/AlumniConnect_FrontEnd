@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { Search, Building, Calendar, Briefcase, User, MessageSquare } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
 
 const Directory = () => {
@@ -16,7 +16,7 @@ const Directory = () => {
 
     const fetchUsers = async () => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get('http://localhost:5000/api/users', config);
+        const res = await api.get('/api/users', config);
         const filtered = res.data.filter(u =>
             u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (u.company && u.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -32,7 +32,7 @@ const Directory = () => {
     const sendChatRequest = async (recipientId) => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         try {
-            const response = await axios.post('http://localhost:5000/api/chat/request', { userId: recipientId }, config);
+            const response = await api.post('/api/chat/request', { userId: recipientId }, config);
             if (response.data && response.data.status === 'accepted') {
                 navigate('/chat', { state: { targetUserId: recipientId } });
             } else {

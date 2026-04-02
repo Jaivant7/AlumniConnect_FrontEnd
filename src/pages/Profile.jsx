@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
 import StudentProfile from './StudentProfile';
 import AlumniProfile from './AlumniProfile';
@@ -15,7 +15,7 @@ const Profile = () => {
         const fetchRole = async () => {
             try {
                 const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                const res = await axios.get(`http://localhost:5000/api/users/${id}`, config);
+                const res = await api.get(`/api/users/${id}`, config);
                 setRole(res.data.role);
             } catch (err) {
                 console.error('Failed to fetch user role:', err);

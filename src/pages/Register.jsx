@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, CheckCircle } from 'lucide-react';
-import axios from 'axios';
+import api from '../utils/api';
 
 const Register = () => {
     const [step, setStep] = useState(1);
@@ -25,7 +25,7 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/auth/register', formData);
+            await api.post('/api/auth/register', formData);
             setStep(3);
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed');

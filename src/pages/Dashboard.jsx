@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { Link } from 'react-router-dom';
 import { Briefcase, MessageSquare, Users, ChevronRight, Building, MapPin, Bell, AlertCircle, ArrowRight } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
@@ -18,24 +18,24 @@ const Dashboard = () => {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             try {
                 // Fetch Jobs
-                const jobsRes = await axios.get('http://localhost:5000/api/jobs', config);
+                const jobsRes = await api.get('/api/jobs', config);
                 // Get top 3 most recent jobs
                 setRecentJobs(jobsRes.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3));
 
                 // Fetch Users (Alumni)
-                const usersRes = await axios.get('http://localhost:5000/api/users', config);
+                const usersRes = await api.get('/api/users', config);
                 // Filter alumni (excluding current user) and get top 2
                 const alumni = usersRes.data.filter(u => u.role === 'alumni' && u._id !== user._id);
                 setAlumniCount(alumni.length);
                 setFeaturedAlumni(alumni.slice(0, 2));
 
                 // Fetch Chats for Active Conversations Stat
-                const chatsRes = await axios.get('http://localhost:5000/api/chat', config);
+                const chatsRes = await api.get('/api/chat', config);
                 const activeChats = chatsRes.data.filter(c => c.status === 'accepted');
                 setActiveChatsCount(activeChats.length);
 
                 // Fetch Notifications
-                const notifRes = await axios.get('http://localhost:5000/api/notifications', config);
+                const notifRes = await api.get('/api/notifications', config);
                 setNotifications(notifRes.data.slice(0, 5)); // Show top 5 recent notifications
 
             } catch (error) {

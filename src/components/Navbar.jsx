@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useContext, useState, useEffect } from 'react';
 import { Bell, Search, LogOut, Users, CheckCircle, MessageSquare, AlertCircle } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
-import axios from 'axios';
+import api from '../utils/api';
 import io from 'socket.io-client';
 
 let socket;
@@ -16,7 +16,7 @@ const Navbar = () => {
 
     useEffect(() => {
         if (user) {
-            socket = io('http://localhost:5000');
+            socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
             socket.emit('join', user._id);
 
             fetchNotifications();
@@ -32,7 +32,7 @@ const Navbar = () => {
     const fetchNotifications = async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            const res = await axios.get('http://localhost:5000/api/notifications', config);
+            const res = await api.get('/api/notifications', config);
             setNotifications(res.data);
         } catch (error) {
             console.error('Error fetching notifications:', error);
@@ -43,7 +43,7 @@ const Navbar = () => {
         if (!notif.isRead) {
             try {
                 const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                await axios.put(`http://localhost:5000/api/notifications/${notif._id}/read`, {}, config);
+                await api.put(`/api/notifications/${notif._id}/read`, {}, config);
                 setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, isRead: true } : n));
             } catch (error) {
                 console.error('Error marking notification as read', error);
@@ -58,7 +58,7 @@ const Navbar = () => {
     const handleReadAll = async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            await axios.put('http://localhost:5000/api/notifications/read-all', {}, config);
+            await api.put('/api/notifications/read-all', {}, config);
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
         } catch (error) {
             console.error('Error marking all as read', error);

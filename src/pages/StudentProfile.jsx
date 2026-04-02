@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
 import { Mail, Phone, MapPin, Briefcase, GraduationCap, Edit3, User, Github, Linkedin, Twitter, ExternalLink, Users, Award, FileText, Globe, ChevronRight, BookOpen, Target, Code, Star, Shield } from 'lucide-react';
 
@@ -23,7 +23,7 @@ const StudentProfile = () => {
     const fetchProfile = async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            const res = await axios.get(`http://localhost:5000/api/users/${id}`, config);
+            const res = await api.get(`/api/users/${id}`, config);
             setProfile(res.data);
 
             setFormData({
@@ -131,7 +131,7 @@ const StudentProfile = () => {
             const config = {
                 headers: { 'Content-Type': 'multipart/form-data' },
             };
-            const { data } = await axios.post('http://localhost:5000/api/upload', uploadData, config);
+            const { data } = await api.post('/api/upload', uploadData, config);
 
             const updatedData = { ...formData, [type]: data.imageUrl };
 
@@ -141,7 +141,7 @@ const StudentProfile = () => {
 
             if (user && user.token) {
                 const updateConfig = { headers: { Authorization: `Bearer ${user.token}` } };
-                await axios.put(`http://localhost:5000/api/users/${id}`, { [type]: data.imageUrl }, updateConfig);
+                await api.put(`/api/users/${id}`, { [type]: data.imageUrl }, updateConfig);
                 setProfile(prev => ({ ...prev, [type]: data.imageUrl }));
             }
         } catch (error) {
@@ -165,7 +165,7 @@ const StudentProfile = () => {
                 achievements: typeof formData.achievements === 'string' ? formData.achievements.split(',').map(s => s.trim()).filter(Boolean) : formData.achievements,
             };
 
-            await axios.put(`http://localhost:5000/api/users/${id}`, processedData, config);
+            await api.put(`/api/users/${id}`, processedData, config);
             await fetchProfile(); // Re-fetch to get dynamic fields like connections and populated jobs
             setIsEditing(false);
         } catch (err) {

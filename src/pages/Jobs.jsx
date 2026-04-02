@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { Plus, MapPin, Briefcase, Calendar, Clock, ArrowRight, User, DollarSign, Share2, Bookmark, Building2, X } from 'lucide-react';
-import axios from 'axios';
+import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
 
 const Jobs = () => {
@@ -60,14 +60,14 @@ const Jobs = () => {
 
     const fetchJobs = async () => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get('http://localhost:5000/api/jobs', config);
+        const res = await api.get('/api/jobs', config);
         setJobs(res.data);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.post('http://localhost:5000/api/jobs', formData, config);
+        await api.post('/api/jobs', formData, config);
         setShowModal(false);
         fetchJobs();
     };
@@ -77,7 +77,7 @@ const Jobs = () => {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             // Ensure only students send the request, others just open link
             if (user.role === 'student') {
-                await axios.post(`http://localhost:5000/api/jobs/${jobId}/apply`, {}, config);
+                await api.post(`/api/jobs/${jobId}/apply`, {}, config);
             }
             window.open(applyLink, '_blank', 'noopener,noreferrer');
         } catch (error) {

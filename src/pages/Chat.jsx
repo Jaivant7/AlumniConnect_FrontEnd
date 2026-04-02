@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { Search, Send, Check, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
 import io from 'socket.io-client';
 
@@ -19,7 +19,7 @@ const Chat = () => {
     const pendingRequests = chats.filter(c => c.status === 'pending' && c.requestedBy !== user._id);
 
     useEffect(() => {
-        socket = io('http://localhost:5000');
+        socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
         socket.emit('join', user._id);
         fetchChats();
         return () => socket.disconnect();
@@ -27,7 +27,7 @@ const Chat = () => {
 
     const fetchChats = async () => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get('http://localhost:5000/api/chat', config);
+        const res = await api.get('/api/chat', config);
         setChats(res.data);
     };
 
@@ -63,7 +63,7 @@ const Chat = () => {
 
     const fetchMessages = async (chatId) => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await axios.get(`http://localhost:5000/api/chat/${chatId}/messages`, config);
+        const res = await api.get(`/api/chat/${chatId}/messages`, config);
         setMessages(res.data);
     };
 
@@ -73,7 +73,7 @@ const Chat = () => {
 
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         try {
-            await axios.post(`http://localhost:5000/api/chat/${activeChat._id}/message`, { content: newMessage }, config);
+            await api.post(`/api/chat/${activeChat._id}/message`, { content: newMessage }, config);
             const messageData = {
                 chatId: activeChat._id,
                 sender: user._id,
@@ -90,7 +90,7 @@ const Chat = () => {
 
     const handleAcceptReject = async (chatId, status) => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.put(`http://localhost:5000/api/chat/${chatId}/respond`, { status }, config);
+        await api.put(`/api/chat/${chatId}/respond`, { status }, config);
         fetchChats();
     };
 
