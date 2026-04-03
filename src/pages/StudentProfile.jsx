@@ -260,7 +260,7 @@ const StudentProfile = () => {
                 <div className="relative animate-fade-in max-w-5xl mx-auto px-2 sm:px-4">
                     <div className={`h-36 sm:h-44 md:h-52 w-full relative overflow-hidden rounded-t-3xl ${!profile.coverPicture ? 'bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-600' : ''}`}>
                         {profile.coverPicture ? (
-                            <img src={`http://localhost:5000${profile.coverPicture}`} alt="Cover" className="w-full h-full object-cover" />
+                            <img src={`${import.meta.env.VITE_API_URL}${profile.coverPicture}`} alt="Cover" className="w-full h-full object-cover" />
                         ) : (
                             <>
                                 {/* Decorative shapes for default cover */}
@@ -287,7 +287,7 @@ const StudentProfile = () => {
                                 <div className="relative -mt-16 sm:-mt-20 shrink-0 self-center sm:self-auto">
                                     <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-[5px] border-white shadow-xl bg-gray-100">
                                         {profile.profilePicture ? (
-                                            <img src={`http://localhost:5000${profile.profilePicture}`} alt={profile.name} className="w-full h-full object-cover" />
+                                            <img src={`${import.meta.env.VITE_API_URL}${profile.profilePicture}`} alt={profile.name} className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-4xl sm:text-5xl font-bold text-white select-none">
                                                 {profile.name.charAt(0).toUpperCase()}

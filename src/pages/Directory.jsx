@@ -84,7 +84,7 @@ const Directory = () => {
                                 <div className="flex items-start space-x-4 mb-4">
                                     <div className="relative">
                                         {u.profilePicture ? (
-                                            <img src={`http://localhost:5000${u.profilePicture}`} alt={u.name} className="w-16 h-16 rounded-xl object-cover shadow-md flex-shrink-0" />
+                                            <img src={`${import.meta.env.VITE_API_URL}${u.profilePicture}`} alt={u.name} className="w-16 h-16 rounded-xl object-cover shadow-md flex-shrink-0" />
                                         ) : (
                                             <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-2xl shadow-md flex-shrink-0">
                                                 {u.name.charAt(0).toUpperCase()}
