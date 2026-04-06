@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { Users, UserCheck, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Users, UserCheck, Clock, CheckCircle, XCircle, Lock, Unlock } from 'lucide-react';
 import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
 
@@ -8,12 +8,14 @@ const Admin = () => {
     const [unverifiedUsers, setUnverifiedUsers] = useState([]);
     const [stats, setStats] = useState({ total: 0, verified: 0, pending: 0 });
     const [complaints, setComplaints] = useState([]);
-    const [activeTab, setActiveTab] = useState('verifications'); // 'verifications' or 'complaints'
+    const [allUsers, setAllUsers] = useState([]);
+    const [activeTab, setActiveTab] = useState('verifications'); // 'verifications', 'complaints', or 'users'
 
     useEffect(() => {
         fetchUnverifiedUsers();
         fetchStats();
         fetchComplaints();
+        fetchAllUsers();
     }, []);
 
     const fetchUnverifiedUsers = async () => {
@@ -35,6 +37,16 @@ const Admin = () => {
             setComplaints(res.data);
         } catch (error) {
             console.error('Error fetching complaints:', error);
+        }
+    };
+
+    const fetchAllUsers = async () => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await api.get('/api/users', config);
+            setAllUsers(res.data);
+        } catch (error) {
+            console.error('Error fetching all users:', error);
         }
     };
 
@@ -66,6 +78,17 @@ const Admin = () => {
             fetchComplaints();
         } catch (error) {
             console.error('Error resolving complaint:', error);
+        }
+    };
+
+    const handleToggleBlock = async (userId) => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            await api.patch(`/api/admin/block/${userId}`, {}, config);
+            fetchAllUsers();
+        } catch (error) {
+            console.error('Error toggling block status:', error);
+            alert(error.response?.data?.message || 'Failed to update user status');
         }
     };
 
@@ -123,6 +146,12 @@ const Admin = () => {
                         className={`py-3 px-6 font-semibold text-lg border-b-2 transition-colors ${activeTab === 'verifications' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                     >
                         Pending Verifications
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('users')}
+                        className={`py-3 px-6 font-semibold text-lg border-b-2 transition-colors ${activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                    >
+                        User Management
                     </button>
                     <button
                         onClick={() => setActiveTab('complaints')}
@@ -265,6 +294,91 @@ const Admin = () => {
                                     <p className="text-gray-600">No complaints or support tickets at the moment</p>
                                 </div>
                             )}
+                        </>
+                    )}
+
+                    {activeTab === 'users' && (
+                        <>
+                            <div className="p-6 border-b border-gray-200">
+                                <h3 className="text-xl font-bold text-gray-900 heading-font">
+                                    User Management
+                                </h3>
+                            </div>
+
+                    {allUsers.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="table-header">User</th>
+                                        <th className="table-header">Email</th>
+                                        <th className="table-header">Role</th>
+                                        <th className="table-header">Status</th>
+                                        <th className="table-header">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {allUsers.map((u) => (
+                                        <tr key={u._id} className="table-row">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-white font-bold">
+                                                        {u.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <span className="font-semibold text-gray-900">{u.name}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-600">{u.email}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`badge ${getRoleBadge(u.role).class}`}>
+                                                    {getRoleBadge(u.role).text}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {u.isBlocked ? (
+                                                    <span className="inline-flex items-center gap-1 text-red-600 font-semibold text-sm">
+                                                        <Lock size={14} /> Blocked
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 text-green-600 font-semibold text-sm">
+                                                        <CheckCircle size={14} /> Active
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {u.role !== 'admin' && (
+                                                    <button
+                                                        onClick={() => handleToggleBlock(u._id)}
+                                                        className={`border px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center gap-1.5 text-sm ${
+                                                            u.isBlocked 
+                                                                ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300' 
+                                                                : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:border-red-300'
+                                                        }`}
+                                                    >
+                                                        {u.isBlocked ? (
+                                                            <>
+                                                                <Unlock size={16} /> Unblock
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Lock size={16} /> Block User
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="p-12 text-center">
+                            <div className="text-6xl mb-4">👥</div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2 heading-font">No Users Found</h3>
+                            <p className="text-gray-600">The platform currently has no assigned users.</p>
+                        </div>
+                    )}
                         </>
                     )}
                 </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { Plus, MapPin, Briefcase, Calendar, Clock, ArrowRight, User, DollarSign, Share2, Bookmark, Building2, X } from 'lucide-react';
+import { Plus, MapPin, Briefcase, Calendar, Clock, ArrowRight, User, DollarSign, Share2, Bookmark, Building2, X, Trash2 } from 'lucide-react';
 import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
 
@@ -87,6 +87,19 @@ const Jobs = () => {
         }
     };
 
+    const handleDeleteJob = async (jobId) => {
+        if (window.confirm("Are you sure you want to delete this job posting?")) {
+            try {
+                const config = { headers: { Authorization: `Bearer ${user.token}` } };
+                await api.delete(`/api/jobs/${jobId}`, config);
+                fetchJobs();
+            } catch (error) {
+                console.error('Error deleting job:', error);
+                alert(error.response?.data?.message || 'Failed to delete job');
+            }
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 body-font">
             <div className="max-w-7xl mx-auto px-6 py-8">
@@ -168,6 +181,15 @@ const Jobs = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1 flex-shrink-0">
+                                        {(user.role === 'admin' || (job.user && user._id === job.user._id)) && (
+                                            <button 
+                                                onClick={() => handleDeleteJob(job._id)}
+                                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Delete Job"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
                                         <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                                             <Bookmark className="w-4 h-4" />
                                         </button>
