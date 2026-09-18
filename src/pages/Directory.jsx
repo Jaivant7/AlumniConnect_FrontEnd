@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { Search, Building, Calendar, Briefcase, User, MessageSquare } from 'lucide-react';
+import { Search, Building, Calendar, Briefcase, User, MessageSquare, ChevronRight } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import AuthContext from '../context/AuthContext';
@@ -136,14 +136,23 @@ const Directory = () => {
                                     )}
                                 </div>
 
-                                {/* Message Button */}
-                                <button
-                                    onClick={() => sendChatRequest(u._id)}
-                                    className="btn-primary w-full flex items-center justify-center gap-2"
-                                >
-                                    <MessageSquare size={18} />
-                                    Send Message
-                                </button>
+                                {/* Action Buttons */}
+                                <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-gray-100">
+                                    <Link
+                                        to={`/profile/${u._id}`}
+                                        className="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs sm:text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
+                                    >
+                                        <User size={16} />
+                                        View Profile
+                                    </Link>
+                                    <button
+                                        onClick={() => sendChatRequest(u._id)}
+                                        className="btn-primary px-3 py-2 text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-2xs"
+                                    >
+                                        <MessageSquare size={16} />
+                                        Send Message
+                                    </button>
+                                </div>
                             </div>
                         )
                     ))}
