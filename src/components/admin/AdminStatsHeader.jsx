@@ -22,7 +22,7 @@ const AdminStatsHeader = ({ stats }) => {
                 <div className="text-purple-100 font-medium">Verified Members</div>
             </div>
 
-            <div className="stats-card gradient-orange animate-slide-up">
+            <div className="stats-card gradient-green animate-slide-up">
                 <div className="flex items-center justify-between mb-4">
                     <Clock size={28} />
                     <span className="text-orange-100 text-sm font-medium">Action Required</span>
