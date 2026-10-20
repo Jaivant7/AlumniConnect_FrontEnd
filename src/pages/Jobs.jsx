@@ -33,10 +33,13 @@ const Jobs = () => {
         fetchJobs();
     }, []);
 
+    const getAuthConfig = () => {
+        return user?.token ? { headers: { Authorization: `Bearer ${user.token}` } } : {};
+    };
+
     const fetchJobs = async () => {
         try {
-            const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            const res = await api.get('/api/jobs', config);
+            const res = await api.get('/api/jobs', getAuthConfig());
             setJobs(res.data);
         } catch (error) {
             console.error('Error fetching jobs:', error);
@@ -45,14 +48,13 @@ const Jobs = () => {
 
     const handleApply = async (jobId, applyLink) => {
         try {
-            const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            if (user.role === 'student') {
-                await api.post(`/api/jobs/${jobId}/apply`, {}, config);
+            if (user?.role === 'student') {
+                await api.post(`/api/jobs/${jobId}/apply`, {}, getAuthConfig());
                 fetchJobs();
             }
             window.open(applyLink, '_blank', 'noopener,noreferrer');
         } catch (error) {
-            console.error('Error applying for job:', error.response?.data?.message || error.message);
+            console.error('Error applying for job:', error.message || error.response?.data?.message);
             window.open(applyLink, '_blank', 'noopener,noreferrer');
         }
     };
@@ -60,12 +62,11 @@ const Jobs = () => {
     const handleDeleteJob = async (jobId) => {
         if (window.confirm("Are you sure you want to delete this job posting?")) {
             try {
-                const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                await api.delete(`/api/jobs/${jobId}`, config);
+                await api.delete(`/api/jobs/${jobId}`, getAuthConfig());
                 fetchJobs();
             } catch (error) {
                 console.error('Error deleting job:', error);
-                alert(error.response?.data?.message || 'Failed to delete job');
+                alert(error.message || error.response?.data?.message || 'Failed to delete job');
             }
         }
     };
@@ -116,7 +117,7 @@ const Jobs = () => {
 
                 {/* Job Cards Grid */}
                 {filteredJobs.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {filteredJobs.map((job) => (
                             <JobCard
                                 key={job._id}

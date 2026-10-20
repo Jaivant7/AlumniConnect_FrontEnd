@@ -14,6 +14,7 @@ const Admin = () => {
     const [complaints, setComplaints] = useState([]);
     const [allUsers, setAllUsers] = useState([]);
     const [activeTab, setActiveTab] = useState('verifications'); // 'verifications', 'complaints', or 'users'
+    const [resolvingId, setResolvingId] = useState(null);
 
     useEffect(() => {
         fetchUnverifiedUsers();
@@ -85,11 +86,15 @@ const Admin = () => {
 
     const handleResolve = async (complaintId) => {
         try {
+            setResolvingId(complaintId);
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             await api.put(`/api/complaints/${complaintId}/resolve`, {}, config);
-            fetchComplaints();
+            await fetchComplaints();
         } catch (error) {
             console.error('Error resolving complaint:', error);
+            alert(error.message || 'Failed to resolve complaint');
+        } finally {
+            setResolvingId(null);
         }
     };
 
@@ -167,6 +172,7 @@ const Admin = () => {
                         <ComplaintResolutionTab
                             complaints={complaints}
                             handleResolve={handleResolve}
+                            resolvingId={resolvingId}
                         />
                     )}
 
