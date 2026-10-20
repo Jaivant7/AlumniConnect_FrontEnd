@@ -61,7 +61,7 @@ class ErrorBoundary extends React.Component {
                                 Go to Dashboard
                             </button>
                         </div>
-                        {process.env.NODE_ENV !== 'production' && this.state.error && (
+                        {import.meta.env.DEV && this.state.error && (
                             <div className="mt-6 text-left bg-gray-900 text-red-300 p-4 rounded-lg overflow-x-auto text-xs font-mono max-h-40">
                                 {this.state.error.toString()}
                             </div>

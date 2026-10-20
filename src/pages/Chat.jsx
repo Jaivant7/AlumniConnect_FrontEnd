@@ -18,18 +18,32 @@ const Chat = () => {
     const activeChats = chats.filter(c => c.status === 'accepted');
     const pendingRequests = chats.filter(c => c.status === 'pending' && c.requestedBy !== user._id);
 
+    const fetchChats = async () => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await api.get('/api/chat', config);
+            setChats(res.data);
+        } catch (error) {
+            console.error('Error fetching chats:', error);
+        }
+    };
+
+    const fetchMessages = async (chatId) => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await api.get(`/api/chat/${chatId}/messages`, config);
+            setMessages(res.data);
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+        }
+    };
+
     useEffect(() => {
         socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
         socket.emit('join', user._id);
         fetchChats();
         return () => socket.disconnect();
     }, []);
-
-    const fetchChats = async () => {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await api.get('/api/chat', config);
-        setChats(res.data);
-    };
 
     useEffect(() => {
         if (activeChat) {
@@ -60,12 +74,6 @@ const Chat = () => {
             }
         });
     }, [activeChat]);
-
-    const fetchMessages = async (chatId) => {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await api.get(`/api/chat/${chatId}/messages`, config);
-        setMessages(res.data);
-    };
 
     const handleSendMessage = async (e) => {
         e.preventDefault();

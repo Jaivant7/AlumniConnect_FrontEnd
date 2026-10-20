@@ -30,7 +30,6 @@ const JobCard = ({
     
     const posterName = job.user?.name || job.postedBy?.name || 'Verified Alumni';
     const posterCompany = job.user?.company || job.company;
-    const posterYear = job.user?.year || job.user?.graduationYear;
 
     const formatDeadline = (dateStr) => {
         if (!dateStr) return null;
@@ -38,7 +37,7 @@ const JobCard = ({
             const d = new Date(dateStr);
             if (isNaN(d.getTime())) return null;
             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        } catch (e) {
+        } catch {
             return null;
         }
     };

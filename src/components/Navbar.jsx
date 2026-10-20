@@ -14,6 +14,16 @@ const Navbar = () => {
     const [notifications, setNotifications] = useState([]);
     const [showNotifications, setShowNotifications] = useState(false);
 
+    const fetchNotifications = async () => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await api.get('/api/notifications', config);
+            setNotifications(res.data);
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
+
     useEffect(() => {
         if (user) {
             socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
@@ -28,16 +38,6 @@ const Navbar = () => {
             return () => socket.disconnect();
         }
     }, [user]);
-
-    const fetchNotifications = async () => {
-        try {
-            const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            const res = await api.get('/api/notifications', config);
-            setNotifications(res.data);
-        } catch (error) {
-            console.error('Error fetching notifications:', error);
-        }
-    };
 
     const handleReadNotification = async (notif) => {
         if (!notif.isRead) {
