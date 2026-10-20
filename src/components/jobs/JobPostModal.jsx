@@ -9,8 +9,6 @@ const getDefaultDeadline = () => {
 };
 
 const JobPostModal = ({ isOpen, onClose, currentUser, onJobPosted }) => {
-    if (!isOpen) return null;
-
     const [skillInput, setSkillInput] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
@@ -27,6 +25,8 @@ const JobPostModal = ({ isOpen, onClose, currentUser, onJobPosted }) => {
         deadline: getDefaultDeadline(),
         applyLink: ''
     });
+
+    if (!isOpen) return null;
 
     const addSkill = (e) => {
         if (e.key === 'Enter') {

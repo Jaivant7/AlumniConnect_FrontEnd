@@ -29,10 +29,6 @@ const Jobs = () => {
         return 'Just now';
     };
 
-    useEffect(() => {
-        fetchJobs();
-    }, []);
-
     const getAuthConfig = () => {
         return user?.token ? { headers: { Authorization: `Bearer ${user.token}` } } : {};
     };
@@ -45,6 +41,10 @@ const Jobs = () => {
             console.error('Error fetching jobs:', error);
         }
     };
+
+    useEffect(() => {
+        fetchJobs();
+    }, []);
 
     const handleApply = async (jobId, applyLink) => {
         try {

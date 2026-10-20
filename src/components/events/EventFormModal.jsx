@@ -31,12 +31,12 @@ const EventFormModal = ({
     currentUser,
     onSubmitSuccess
 }) => {
-    if (!isOpen) return null;
-
     const [uploadingBanner, setUploadingBanner] = useState(false);
     const [uploadingLogo, setUploadingLogo] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formError, setFormError] = useState('');
+
+    if (!isOpen) return null;
 
     const handleFileUpload = async (file, type) => {
         if (!file) return;

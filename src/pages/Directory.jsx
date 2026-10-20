@@ -10,19 +10,19 @@ const Directory = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
     const fetchUsers = async () => {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const res = await api.get('/api/users', config);
-        const filtered = res.data.filter(u =>
-            u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (u.company && u.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (u.department && u.department.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-        setUsers(filtered);
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await api.get('/api/users', config);
+            const filtered = res.data.filter(u =>
+                u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (u.company && u.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (u.department && u.department.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+            setUsers(filtered);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
     };
 
     useEffect(() => {
