@@ -36,6 +36,7 @@ const Events = () => {
     const [selectedMode, setSelectedMode] = useState('All');
     const [selectedStatus, setSelectedStatus] = useState('upcoming');
     const [selectedDate, setSelectedDate] = useState(null);
+    const [counts, setCounts] = useState({ all: 0, college: 0, industry: 0 });
 
     // Modal States
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -71,9 +72,41 @@ const Events = () => {
         contactInformation: user.email || '',
     });
 
+    const fetchCounts = async () => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await api.get('/api/events?status=all', config);
+            const allEvs = res.data || [];
+            const collegeCount = allEvs.filter(e => e.eventCategory === 'COLLEGE').length;
+            const industryCount = allEvs.filter(e => e.eventCategory === 'INDUSTRY').length;
+            setCounts({
+                all: allEvs.length,
+                college: collegeCount,
+                industry: industryCount
+            });
+        } catch (e) {
+            console.error('Failed to fetch event counts', e);
+        }
+    };
+
+    useEffect(() => {
+        fetchCounts();
+    }, []);
+
     useEffect(() => {
         fetchEvents();
     }, [selectedCategory, selectedType, selectedMode, selectedStatus, selectedDate]);
+
+    const handleCategoryChange = (cat) => {
+        setSelectedCategory(cat);
+        if (selectedType !== 'All') {
+            const isIndustryType = ALUMNI_EVENT_TYPES.includes(selectedType);
+            const isCollegeType = COLLEGE_EVENT_TYPES.includes(selectedType);
+            if ((cat === 'COLLEGE' && isIndustryType) || (cat === 'INDUSTRY' && isCollegeType)) {
+                setSelectedType('All');
+            }
+        }
+    };
 
     const fetchEvents = async () => {
         setLoading(true);
@@ -179,6 +212,7 @@ const Events = () => {
         } else {
             setEvents([savedEvent, ...events]);
         }
+        fetchCounts();
     };
 
     const handleRegisterToggle = async (eventId) => {
@@ -204,12 +238,20 @@ const Events = () => {
             if (selectedEventDetails?._id === eventId) {
                 setSelectedEventDetails(null);
             }
+            fetchCounts();
         } catch (error) {
             alert(error.response?.data?.message || 'Delete failed');
         }
     };
 
     const filteredEvents = events.filter((ev) => {
+        // Strict Category separation
+        if (selectedCategory === 'INDUSTRY' || selectedCategory === 'alumni') {
+            if (ev.eventCategory !== 'INDUSTRY') return false;
+        } else if (selectedCategory === 'COLLEGE' || selectedCategory === 'college') {
+            if (ev.eventCategory !== 'COLLEGE') return false;
+        }
+
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase();
         return (
@@ -256,7 +298,7 @@ const Events = () => {
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                     <div className="inline-flex flex-wrap p-1.5 bg-gray-200/70 rounded-2xl gap-1.5 border border-gray-200 max-w-full">
                         <button
-                            onClick={() => setSelectedCategory('all')}
+                            onClick={() => handleCategoryChange('all')}
                             className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
                                 selectedCategory === 'all'
                                     ? 'bg-white text-blue-600 shadow-sm border border-gray-200/80 font-bold'
@@ -264,28 +306,49 @@ const Events = () => {
                             }`}
                         >
                             <Calendar size={16} /> All Events
+                            {counts.all > 0 && (
+                                <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                                    selectedCategory === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-300/80 text-gray-700'
+                                }`}>
+                                    {counts.all}
+                                </span>
+                            )}
                         </button>
 
                         <button
-                            onClick={() => setSelectedCategory('college')}
+                            onClick={() => handleCategoryChange('COLLEGE')}
                             className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
-                                selectedCategory === 'college'
+                                selectedCategory === 'COLLEGE' || selectedCategory === 'college'
                                     ? 'bg-white text-blue-600 shadow-sm border border-gray-200/80 font-bold'
                                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/60'
                             }`}
                         >
                             <GraduationCap size={16} /> 🎓 College Events
+                            {counts.college > 0 && (
+                                <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                                    selectedCategory === 'COLLEGE' || selectedCategory === 'college' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-300/80 text-gray-700'
+                                }`}>
+                                    {counts.college}
+                                </span>
+                            )}
                         </button>
 
                         <button
-                            onClick={() => setSelectedCategory('alumni')}
+                            onClick={() => handleCategoryChange('INDUSTRY')}
                             className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
-                                selectedCategory === 'alumni'
+                                selectedCategory === 'INDUSTRY' || selectedCategory === 'alumni'
                                     ? 'bg-white text-blue-600 shadow-sm border border-gray-200/80 font-bold'
                                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/60'
                             }`}
                         >
                             <Award size={16} /> 💼 Industry / Alumni Events
+                            {counts.industry > 0 && (
+                                <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                                    selectedCategory === 'INDUSTRY' || selectedCategory === 'alumni' ? 'bg-purple-100 text-purple-700' : 'bg-gray-300/80 text-gray-700'
+                                }`}>
+                                    {counts.industry}
+                                </span>
+                            )}
                         </button>
                     </div>
 
@@ -298,6 +361,8 @@ const Events = () => {
                 <EventFilterBar
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={handleCategoryChange}
                     selectedType={selectedType}
                     setSelectedType={setSelectedType}
                     selectedMode={selectedMode}
