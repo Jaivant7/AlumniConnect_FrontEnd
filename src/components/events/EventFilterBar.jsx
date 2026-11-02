@@ -20,6 +20,8 @@ const ALUMNI_EVENT_TYPES = [
 const EventFilterBar = ({
     searchQuery,
     setSearchQuery,
+    selectedCategory,
+    setSelectedCategory,
     selectedType,
     setSelectedType,
     selectedMode,
@@ -65,6 +67,9 @@ const EventFilterBar = ({
         setIsCalendarOpen(false);
     };
 
+    const isIndustryActive = selectedCategory === 'INDUSTRY' || selectedCategory === 'alumni';
+    const isCollegeActive = selectedCategory === 'COLLEGE' || selectedCategory === 'college';
+
     return (
         <div className="event-filters-bar mb-8">
             <div className="event-filters-grid">
@@ -86,16 +91,36 @@ const EventFilterBar = ({
                     <Tag size={20} className={`absolute left-[18px] top-1/2 -translate-y-1/2 pointer-events-none z-10 ${selectedType !== 'All' ? 'text-[#2563EB]' : 'text-[#64748B]'}`} strokeWidth={1.8} />
                     <select
                         value={selectedType}
-                        onChange={(e) => setSelectedType(e.target.value)}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setSelectedType(val);
+                            if (val !== 'All' && setSelectedCategory) {
+                                if (ALUMNI_EVENT_TYPES.includes(val) && isCollegeActive) {
+                                    setSelectedCategory('INDUSTRY');
+                                } else if (COLLEGE_EVENT_TYPES.includes(val) && isIndustryActive) {
+                                    setSelectedCategory('COLLEGE');
+                                }
+                            }
+                        }}
                         className={`filter-control-select ${selectedType !== 'All' ? 'active-filter' : ''}`}
                     >
-                        <option value="All">Type: All</option>
-                        <optgroup label="Industry Competitions">
-                            {ALUMNI_EVENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                        </optgroup>
-                        <optgroup label="College Events">
-                            {COLLEGE_EVENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                        </optgroup>
+                        <option value="All">
+                            {isIndustryActive 
+                                ? 'Type: All Industry Events' 
+                                : isCollegeActive 
+                                    ? 'Type: All College Events' 
+                                    : 'Type: All'}
+                        </option>
+                        {!isCollegeActive && (
+                            <optgroup label="Industry Competitions & Hackathons">
+                                {ALUMNI_EVENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </optgroup>
+                        )}
+                        {!isIndustryActive && (
+                            <optgroup label="College Events & Workshops">
+                                {COLLEGE_EVENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </optgroup>
+                        )}
                     </select>
                     <ChevronDown size={18} className={`absolute right-[18px] top-1/2 -translate-y-1/2 pointer-events-none z-10 ${selectedType !== 'All' ? 'text-[#2563EB]' : 'text-[#64748B]'}`} />
                 </div>
